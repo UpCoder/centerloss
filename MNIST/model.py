@@ -1,12 +1,5 @@
 # -*- coding=utf-8 -*-
 import tensorflow as tf
-from tensorflow.python.training import moving_averages
-from tensorflow.python.ops import control_flow_ops
-RESNET_VARIABLES = 'model_variables'
-MOVING_AVERAGE_DECAY = 0.9997
-BN_EPSILON = 0.001
-BN_DECAY = MOVING_AVERAGE_DECAY
-UPDATE_OPS_COLLECTION = 'model_update_ops'
 
 
 def parametric_relu(_x):
@@ -117,22 +110,13 @@ def inference(image_tensor, is_training, need_featuremap=False):
                      activation_method=activation_method)
     layer9 = do_pooling(layer8, 'max', 'layer9-maxpooling3', kernel_size=2, stride_size=2, padding='VALID')
 
-    # layer10 = do_conv(layer9, 'layer10-conv7', kernel_size=5, depth=128, stride_size=1, padding='SAME', config=config)
-    # layer11 = do_conv(layer10, 'layer11-conv8', kernel_size=5, depth=128, stride_size=1, padding='SAME', config=config)
-    # layer12 = do_pooling(layer11, 'max', 'layer12-maxpooling4', kernel_size=2, stride_size=2, padding='VALID')
-    #
-    # layer13 = do_conv(layer12, 'layer13-conv9', kernel_size=5, depth=64, stride_size=1, padding='SAME', config=config)
-    # layer14 = do_conv(layer13, 'layer14-conv10', kernel_size=5, depth=64, stride_size=1, padding='SAME', config=config)
-
-    # layer15 = do_conv(layer14, 'layer15-conv11', kernel_size=5, depth=32, stride_size=1, padding='SAME')
-    # layer16 = do_conv(layer15, 'layer16-conv12', kernel_size=5, depth=32, stride_size=1, padding='SAME')
     print layer9
     conv_output = flatten22Dim(layer9)
 
     fc1 = do_fc(conv_output, layer_name='layer13-fc1', depth=2, activation_method=activation_method)
     # if train:
     #     layer10 = tf.nn.dropout(layer10, 0.5)
-    fc2 = do_fc(fc1, layer_name='layer14-fc2', depth=10, activation_method=activation_method)
+    fc2 = do_fc(fc1, layer_name='layer14-fc2', depth=10, is_activation=False, activation_method=activation_method)
     if need_featuremap:
         return fc2, fc1
     return fc2

@@ -50,6 +50,7 @@ def convert2npy_label(data_path, save_path):
     np.save(save_path, labels_arr)
     return labels_arr
 
+
 def read_npys(data_path):
     train_image = np.load(os.path.join(data_path, 'train_images.npy'))
     train_label = np.load(os.path.join(data_path, 'train_labels.npy'))
@@ -63,7 +64,7 @@ def read_npys(data_path):
 
 
 class Reader:
-    def __init__(self, data_path, batch_size=100):
+    def __init__(self, data_path, batch_size=100, training_epoch_num=None, validation_epoch_num=None, testing_epoch_num=1):
         self.data_dir = data_path
         self.batch_size = batch_size
         self.train_image, self.train_label, self.test_image, self.test_label = read_npys(self.data_dir)
@@ -79,11 +80,11 @@ class Reader:
         print np.shape(self.train_image), np.shape(self.val_image), np.shape(self.test_image)
         print np.shape(self.train_label), np.shape(self.val_label), np.shape(self.test_label)
         self.train_generator = GenerateBatch(self.train_image, self.train_label, self.batch_size,
-                                             epoch_num=None).generate_next_batch()
+                                             epoch_num=training_epoch_num).generate_next_batch()
         self.val_generator = GenerateBatch(self.val_image, self.val_label, self.batch_size,
-                                           epoch_num=None).generate_next_batch()
+                                           epoch_num=validation_epoch_num).generate_next_batch()
         self.test_generator = GenerateBatch(self.test_image, self.test_label, self.batch_size,
-                                            epoch_num=1).generate_next_batch()
+                                            epoch_num=testing_epoch_num).generate_next_batch()
 
 
 class GenerateBatch:
