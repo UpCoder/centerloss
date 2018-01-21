@@ -1,10 +1,8 @@
 # -*- coding=utf-8 -*-
 import tensorflow as tf
 from model import inference, inference_LeNet
-from reader import Reader
 import numpy as np
 import os
-category_num = 10
 _lambda = 1
 _alpha = 0.5
 
@@ -32,7 +30,7 @@ def update_centers(centers, data, labels, category_num):
     return centers
 
 
-def train(images_tensor, label_tensor, iterator_num, reader, summary_path='./log', restore=None):
+def train(images_tensor, label_tensor, iterator_num, reader, summary_path='./log', restore=None, output_num=10):
     '''
     训练
     :param images_tensor: 图像数据的tensor
@@ -43,10 +41,10 @@ def train(images_tensor, label_tensor, iterator_num, reader, summary_path='./log
     :param restore: 是否从某一个断点开始训练，如果不为None,则restore[path]代表的就是之前保存模型的路径
     :return:None
     '''
-    centers_value = np.zeros([category_num, 2], dtype=np.float32)
+    centers_value = np.zeros([output_num, 2], dtype=np.float32)
     centers_tensor = tf.placeholder(dtype=tf.float32, shape=np.shape(centers_value))
     is_training_tensor = tf.placeholder(dtype=tf.bool, shape=[], name='training_flag')
-    logits, featuresmap = inference(images_tensor, is_training_tensor, need_featuremap=True)
+    logits, featuresmap = inference(images_tensor, is_training_tensor, need_featuremap=True, output_num=output_num)
     predicted_tensor = tf.argmax(logits, 1)
     global_step_tensor = tf.Variable(initial_value=0, trainable=False)
     softmax_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=label_tensor, logits=logits))
@@ -57,7 +55,7 @@ def train(images_tensor, label_tensor, iterator_num, reader, summary_path='./log
     tf.summary.scalar('center loss', center_loss)
     tf.summary.scalar('loss', loss_tensor)
     train_step = tf.train.AdamOptimizer(learning_rate=1e-3).minimize(loss_tensor, global_step=global_step_tensor)
-    owner_step = tf.py_func(update_centers, [centers_tensor, featuresmap, label_tensor, category_num], tf.float32)
+    owner_step = tf.py_func(update_centers, [centers_tensor, featuresmap, label_tensor, output_num], tf.float32)
     print 'owner_step is', owner_step
     with tf.control_dependencies([train_step, owner_step]):
         train_op = tf.no_op('train')
@@ -130,6 +128,7 @@ def calculate_centerloss(x_tensor, label_tensor, centers_tensor):
     return loss, loss
 
 if __name__ == '__main__':
+    from reader import Reader
     reader = Reader('/home/give/PycharmProjects/Reproduce/CenterLoss/MNIST/data')
     image_tensor = tf.placeholder(dtype=tf.float32, shape=[100, 28, 28, 1], name='input_x')
     label_tensor = tf.placeholder(dtype=tf.float32, shape=[100, 10], name='input_y')
