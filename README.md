@@ -10,20 +10,15 @@
  - 我们可以看到，虽然的确不同的类别被分到了不同的地方（cluster），但是每个cluster之间距离较近，而且类内的差距较大，也就是说我们得到的features并不能通过一个较为简单的分类器将其区分开来，需要一个相对较为复杂的分类器才可以得到较好的结果。也就是说，我们得到的features并不是一个很好的特征。
  - 那么怎么改进呢？就像我们上面所说，只要让每个cluster之间的距离相对来说远一些，类内的差距小一下，那么区分起来应该就更容易了。
  - 那么具体来说怎么实现让各个cluster之间的距离远一些，类内的差距小一些呢？我们可以考虑下面的loss函数
-$$
-\mathcal{L}_C = \frac{1}{2}\sum_{i=1}^m||x_i - c_{y_i}||_2^2
-$$
-	- 其中$x_i$是我们MNIST数据集中样本对应的features，$c_{y_i}$对应的是第$y_i$个中心，其中$i \in \{1,2,...,10\}$
+<a href="https://www.codecogs.com/eqnedit.php?latex=\mathcal{L}C&space;=&space;\frac{1}{2}\sum{i=1}^m||x_i&space;-&space;c_{y_i}||_2^2" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\mathcal{L}C&space;=&space;\frac{1}{2}\sum{i=1}^m||x_i&space;-&space;c_{y_i}||_2^2" title="\mathcal{L}C = \frac{1}{2}\sum{i=1}^m||x_i - c_{y_i}||_2^2" /></a>
+	- 其中<a href="https://www.codecogs.com/eqnedit.php?latex=$x_i$" target="_blank"><img src="https://latex.codecogs.com/gif.latex?$x_i$" title="$x_i$" /></a>是我们MNIST数据集中样本对应的features，<a href="https://www.codecogs.com/eqnedit.php?latex=$c_{y_i}$" target="_blank"><img src="https://latex.codecogs.com/gif.latex?$c_{y_i}$" title="$c_{y_i}$" /></a>对应的是第<a href="https://www.codecogs.com/eqnedit.php?latex=y_i" target="_blank"><img src="https://latex.codecogs.com/gif.latex?y_i" title="y_i" /></a>个中心，其中<a href="https://www.codecogs.com/eqnedit.php?latex=i&space;\in&space;\{1,2,...,10\}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?i&space;\in&space;\{1,2,...,10\}" title="i \in \{1,2,...,10\}" /></a>
 	- 通过上述函数，我们自然就约束了同一个类别中的样本到质心的距离，这样就可以让同一个cluster里面的数据更加聚集。
 	- 文章中也给出了更新质心的公式
-	$$
-\bigtriangleup c_j = \frac{\sum_{i=1}^m\delta(y_i== j)*(c_j - x_i)}{1 + \sum_{i=1}^m \delta(y_i == j)}\\
-c_j = c-\bigtriangleup c_j
-$$
-		- 其中$\delta(y_i == j)$是判断第i个sample的label是不是等于j，如果是则返回1，否则返回0
-		- $c_j$代表的就是第j个类别的质心
-		- $x_i$代表的是第i个样本
-	- 最终我们优化的target是$\mathcal{L} = \mathcal{L_s} + \lambda * \mathcal{L_c}$
+	<a href="https://www.codecogs.com/eqnedit.php?latex=\bigtriangleup&space;c_j&space;=&space;\frac{\sum_{i=1}^m\delta(y_i==&space;j)*(c_j&space;-&space;x_i)}{1&space;&plus;&space;\sum_{i=1}^m&space;\delta(y_i&space;==&space;j)}\\&space;c_j&space;=&space;c-\bigtriangleup&space;c_j" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\bigtriangleup&space;c_j&space;=&space;\frac{\sum_{i=1}^m\delta(y_i==&space;j)*(c_j&space;-&space;x_i)}{1&space;&plus;&space;\sum_{i=1}^m&space;\delta(y_i&space;==&space;j)}\\&space;c_j&space;=&space;c-\bigtriangleup&space;c_j" title="\bigtriangleup c_j = \frac{\sum_{i=1}^m\delta(y_i== j)*(c_j - x_i)}{1 + \sum_{i=1}^m \delta(y_i == j)}\\ c_j = c-\bigtriangleup c_j" /></a>
+		- 其中<a href="https://www.codecogs.com/eqnedit.php?latex=\delta(y_i&space;==&space;j)" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\delta(y_i&space;==&space;j)" title="\delta(y_i == j)" /></a>是判断第i个sample的label是不是等于j，如果是则返回1，否则返回0
+		- <a href="https://www.codecogs.com/eqnedit.php?latex=c_j" target="_blank"><img src="https://latex.codecogs.com/gif.latex?c_j" title="c_j" /></a>代表的就是第j个类别的质心
+		- <a href="https://www.codecogs.com/eqnedit.php?latex=x_i" target="_blank"><img src="https://latex.codecogs.com/gif.latex?x_i" title="x_i" /></a>代表的是第i个样本
+	- 最终我们优化的target是<a href="https://www.codecogs.com/eqnedit.php?latex=\mathcal{L}&space;=&space;\mathcal{L_s}&space;&plus;&space;\lambda&space;*&space;\mathcal{L_c}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\mathcal{L}&space;=&space;\mathcal{L_s}&space;&plus;&space;\lambda&space;*&space;\mathcal{L_c}" title="\mathcal{L} = \mathcal{L_s} + \lambda * \mathcal{L_c}" /></a>
 - 实现
 	- 第一点：怎么计算CenterLoss
 		- 一种是我自己写的，感觉很蠢。。。
